@@ -67,8 +67,5 @@ const MLData = (() => {
 
 window.MLData = MLData;
 
-Don't worry that nothing visibly happens after you commit it — this file works behind the scenes. We'll see it come alive next session (Day 3), when we wire it into the page and draw your first actual price chart.
-
-Commit it and tell me "done" — I'll confirm it landed, and that's Day 2 finished.
 
 
