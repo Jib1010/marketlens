@@ -9,8 +9,17 @@ function filterByTimeframe(bars, tf) {
   return bars.slice(-n);
 }
 
-async function renderCharts(ticker, timeframe) {
+aasync function renderCharts(ticker, timeframe) {
+  const priceCanvasEl = document.getElementById('price-chart');
+  if (priceCanvasEl && priceCanvasEl.parentElement) {
+    priceCanvasEl.parentElement.style.opacity = '0.4';
+  }
+
   const data = await MLData.getData(ticker);
+
+  if (priceCanvasEl && priceCanvasEl.parentElement) {
+    priceCanvasEl.parentElement.style.opacity = '1';
+  }
   const allBars = data.bars;
   const bars = filterByTimeframe(allBars, timeframe);
   const startIdx = allBars.length - bars.length;
