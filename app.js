@@ -231,10 +231,58 @@ function exportBacktestCSV() {
   URL.revokeObjectURL(url);
 }
 
+
 const exportBtn = document.getElementById('export-csv-btn');
 if (exportBtn) {
   exportBtn.addEventListener('click', exportBacktestCSV);
 }
+
+function getStrategySignals(key, bars) {
+  if (key === 'MA') return strategyMACrossover(bars);
+  if (key === 'RSI') return strategyRSI(bars);
+  if (key === 'MACD') return strategyMACD(bars);
+  if (key === 'BB') return strategyBollinger(bars);
+}
+
+async function runComparison() {
+  const strategyAKey = document.getElementById('strategy-select').value;
+  const strategyBKey = document.getElementById('compare-select').value;
+  const strategyAName = document.getElementById('strategy-select').selectedOptions[0].text;
+  const strategyBName = document.getElementById('compare-select').selectedOptions[0].text;
+
+  const data = await MLData.getData(currentTicker);
+  const bars = data.bars;
+
+  const signalsA = getStrategySignals(strategyAKey, bars);
+  const signalsB = getStrategySignals(strategyBKey, bars);
+
+  const resultA = runBacktest(bars, signalsA, 10000, 0.001);
+  const resultB = runBacktest(bars, signalsB, 10000, 0.001);
+  const metricsA = calcMetrics(bars, resultA, 10000);
+  const metricsB = calcMetrics(bars, resultB, 10000);
+
+  const compareDiv = document.getElementById('compare-results');
+  compareDiv.innerHTML = `
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr style="border-bottom: 2px solid #1e293b;">
+        <th style="text-align: left; padding: 6px;">Metric</th>
+        <th style="text-align: left; padding: 6px;">${strategyAName}</th>
+        <th style="text-align: left; padding: 6px;">${strategyBName}</th>
+      </tr>
+      <tr><td style="padding: 6px;">Total Return</td><td style="padding: 6px;">${(metricsA.totalReturn * 100).toFixed(1)}%</td><td style="padding: 6px;">${(metricsB.totalReturn * 100).toFixed(1)}%</td></tr>
+      <tr><td style="padding: 6px;">Sharpe Ratio</td><td style="padding: 6px;">${metricsA.sharpe.toFixed(2)}</td><td style="padding: 6px;">${metricsB.sharpe.toFixed(2)}</td></tr>
+      <tr><td style="padding: 6px;">Max Drawdown</td><td style="padding: 6px;">${(metricsA.maxDrawdown * 100).toFixed(1)}%</td><td style="padding: 6px;">${(metricsB.maxDrawdown * 100).toFixed(1)}%</td></tr>
+      <tr><td style="padding: 6px;">Win Rate</td><td style="padding: 6px;">${(metricsA.winRate * 100).toFixed(1)}%</td><td style="padding: 6px;">${(metricsB.winRate * 100).toFixed(1)}%</td></tr>
+      <tr><td style="padding: 6px;">Trades</td><td style="padding: 6px;">${metricsA.numTrades}</td><td style="padding: 6px;">${metricsB.numTrades}</td></tr>
+    </table>
+  `;
+}
+
+const compareBtn = document.getElementById('compare-btn');
+if (compareBtn) {
+  compareBtn.addEventListener('click', runComparison);
+}
+
 
 const backtestBtn = document.getElementById('run-backtest-btn');
 if (backtestBtn) {
