@@ -9,8 +9,8 @@ function filterByTimeframe(bars, tf) {
   return bars.slice(-n);
 }
 
-function renderCharts(ticker, timeframe) {
-  const data = MLData.getData(ticker);
+async function renderCharts(ticker, timeframe) {
+const data = await MLData.getData(ticker);
   const allBars = data.bars;
   const bars = filterByTimeframe(allBars, timeframe);
   const startIdx = allBars.length - bars.length;
