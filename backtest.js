@@ -4,16 +4,14 @@
 function runBacktest(bars, signals, startingCash = 10000, txCostPct = 0.001) {
   let cash = startingCash;
   let shares = 0;
-  let position = false; // true if currently holding
+  let position = false;
   const trades = [];
   const equityCurve = [];
 
   for (let i = 0; i < bars.length; i++) {
-    // Mark equity at today's close (using current holdings)
     const equityToday = cash + shares * bars[i].close;
     equityCurve.push({ date: bars[i].date, equity: equityToday });
 
-    // Check yesterday's signal, execute at TODAY's open
     if (i === 0) continue;
     const signal = signals[i - 1];
 
@@ -38,7 +36,6 @@ function runBacktest(bars, signals, startingCash = 10000, txCostPct = 0.001) {
   return { trades, equityCurve, finalEquity, startingCash };
 }
 
-// Simple Moving Average helper
 function calcSMA(values, period) {
   const sma = new Array(values.length).fill(null);
   for (let i = period - 1; i < values.length; i++) {
@@ -49,105 +46,65 @@ function calcSMA(values, period) {
   return sma;
 }
 
-// Strategy 1: Moving Average Crossover (default 50/200)
-// BUY when fast MA crosses above slow MA, SELL when it crosses below
 function strategyMACrossover(bars, fastPeriod = 50, slowPeriod = 200) {
   const closes = bars.map(b => b.close);
   const fastMA = calcSMA(closes, fastPeriod);
   const slowMA = calcSMA(closes, slowPeriod);
-
   const signals = new Array(bars.length).fill(null);
 
   for (let i = 1; i < bars.length; i++) {
     if (fastMA[i] === null || slowMA[i] === null || fastMA[i - 1] === null || slowMA[i - 1] === null) continue;
-
     const prevDiff = fastMA[i - 1] - slowMA[i - 1];
     const currDiff = fastMA[i] - slowMA[i];
-
-    if (prevDiff <= 0 && currDiff > 0) {
-      signals[i] = 'BUY'; // golden cross
-    } else if (prevDiff >= 0 && currDiff < 0) {
-      signals[i] = 'SELL'; // death cross
-    }
+    if (prevDiff <= 0 && currDiff > 0) signals[i] = 'BUY';
+    else if (prevDiff >= 0 && currDiff < 0) signals[i] = 'SELL';
   }
-
   return signals;
-}// Strategy 2: RSI Oversold/Overbought (default 30/70)
-// BUY when RSI crosses above the oversold threshold (was below, now above)
-// SELL when RSI crosses below the overbought threshold (was above, now below)
+}
+
 function strategyRSI(bars, period = 14, oversold = 30, overbought = 70) {
   const rsi = calcRSI(bars, period);
   const signals = new Array(bars.length).fill(null);
-
   for (let i = 1; i < bars.length; i++) {
     if (rsi[i] === null || rsi[i - 1] === null) continue;
-
-    if (rsi[i - 1] <= oversold && rsi[i] > oversold) {
-      signals[i] = 'BUY';
-    } else if (rsi[i - 1] >= overbought && rsi[i] < overbought) {
-      signals[i] = 'SELL';
-    }
+    if (rsi[i - 1] <= oversold && rsi[i] > oversold) signals[i] = 'BUY';
+    else if (rsi[i - 1] >= overbought && rsi[i] < overbought) signals[i] = 'SELL';
   }
-
   return signals;
 }
 
-// Strategy 3: MACD Signal Line Cross
-// BUY when MACD line crosses above signal line, SELL when it crosses below
 function strategyMACD(bars, fast = 12, slow = 26, signalPeriod = 9) {
   const macd = calcMACD(bars, fast, slow, signalPeriod);
   const signals = new Array(bars.length).fill(null);
-
   for (let i = 1; i < bars.length; i++) {
     if (macd.macdLine[i] === null || macd.signalLine[i] === null ||
         macd.macdLine[i - 1] === null || macd.signalLine[i - 1] === null) continue;
-
     const prevDiff = macd.macdLine[i - 1] - macd.signalLine[i - 1];
     const currDiff = macd.macdLine[i] - macd.signalLine[i];
-
-    if (prevDiff <= 0 && currDiff > 0) {
-      signals[i] = 'BUY';
-    } else if (prevDiff >= 0 && currDiff < 0) {
-      signals[i] = 'SELL';
-    }
+    if (prevDiff <= 0 && currDiff > 0) signals[i] = 'BUY';
+    else if (prevDiff >= 0 && currDiff < 0) signals[i] = 'SELL';
   }
-
   return signals;
 }
 
-// Strategy 4: Bollinger Mean Reversion
-// BUY when price crosses below the lower band (oversold), SELL when it crosses back above the middle band
 function strategyBollinger(bars, period = 20, numStdDev = 2) {
   const bb = calcBollingerBands(bars, period, numStdDev);
   const closes = bars.map(b => b.close);
   const signals = new Array(bars.length).fill(null);
-
   for (let i = 1; i < bars.length; i++) {
     if (bb.lower[i] === null || bb.middle[i] === null ||
         bb.lower[i - 1] === null || bb.middle[i - 1] === null) continue;
-
-    if (closes[i - 1] >= bb.lower[i - 1] && closes[i] < bb.lower[i]) {
-      signals[i] = 'BUY';
-    } else if (closes[i - 1] <= bb.middle[i - 1] && closes[i] > bb.middle[i]) {
-      signals[i] = 'SELL';
-    }
+    if (closes[i - 1] >= bb.lower[i - 1] && closes[i] < bb.lower[i]) signals[i] = 'BUY';
+    else if (closes[i - 1] <= bb.middle[i - 1] && closes[i] > bb.middle[i]) signals[i] = 'SELL';
   }
-
   return signals;
 }
 
-
-// Performance metrics for a completed backtest
 function calcMetrics(bars, backtestResult, startingCash = 10000) {
   const { trades, equityCurve, finalEquity } = backtestResult;
-
-  // Total return
   const totalReturn = (finalEquity - startingCash) / startingCash;
-
-  // Buy-and-hold return over the same period
   const buyHoldReturn = (bars[bars.length - 1].close - bars[0].close) / bars[0].close;
 
-  // Daily returns from the equity curve, for Sharpe
   const dailyReturns = [];
   for (let i = 1; i < equityCurve.length; i++) {
     const prev = equityCurve[i - 1].equity;
@@ -159,7 +116,6 @@ function calcMetrics(bars, backtestResult, startingCash = 10000) {
   const stdDev = Math.sqrt(variance);
   const sharpe = stdDev === 0 ? 0 : (meanDaily / stdDev) * Math.sqrt(252);
 
-  // Max drawdown, computed on the equity curve
   let peak = equityCurve[0].equity;
   let maxDrawdown = 0;
   for (const point of equityCurve) {
@@ -168,7 +124,6 @@ function calcMetrics(bars, backtestResult, startingCash = 10000) {
     if (drawdown > maxDrawdown) maxDrawdown = drawdown;
   }
 
-  // Win rate: pair up BUY -> SELL trades, check if profitable
   let wins = 0, completedTrades = 0;
   for (let i = 0; i < trades.length - 1; i++) {
     if (trades[i].type === 'BUY' && trades[i + 1].type === 'SELL') {
@@ -178,13 +133,5 @@ function calcMetrics(bars, backtestResult, startingCash = 10000) {
   }
   const winRate = completedTrades === 0 ? 0 : wins / completedTrades;
 
-  return {
-    totalReturn,
-    buyHoldReturn,
-    sharpe,
-    maxDrawdown,
-    winRate,
-    numTrades: trades.length,
-    completedTrades
-  };
+  return { totalReturn, buyHoldReturn, sharpe, maxDrawdown, winRate, numTrades: trades.length, completedTrades };
 }
