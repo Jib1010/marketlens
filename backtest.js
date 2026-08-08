@@ -73,3 +73,26 @@ function strategyMACrossover(bars, fastPeriod = 50, slowPeriod = 200) {
 
   return signals;
 }
+
+// Strategy 3: MACD Signal Line Cross
+// BUY when MACD line crosses above signal line, SELL when it crosses below
+function strategyMACD(bars, fast = 12, slow = 26, signalPeriod = 9) {
+  const macd = calcMACD(bars, fast, slow, signalPeriod);
+  const signals = new Array(bars.length).fill(null);
+
+  for (let i = 1; i < bars.length; i++) {
+    if (macd.macdLine[i] === null || macd.signalLine[i] === null ||
+        macd.macdLine[i - 1] === null || macd.signalLine[i - 1] === null) continue;
+
+    const prevDiff = macd.macdLine[i - 1] - macd.signalLine[i - 1];
+    const currDiff = macd.macdLine[i] - macd.signalLine[i];
+
+    if (prevDiff <= 0 && currDiff > 0) {
+      signals[i] = 'BUY';
+    } else if (prevDiff >= 0 && currDiff < 0) {
+      signals[i] = 'SELL';
+    }
+  }
+
+  return signals;
+}
