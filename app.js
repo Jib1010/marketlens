@@ -181,6 +181,12 @@ async function runSelectedBacktest() {
 
   const result = runBacktest(bars, signals, 10000, 0.001);
   const metrics = calcMetrics(bars, result, 10000);
+  window.lastBacktestResult = {
+    trades: result.trades,
+    metrics: metrics,
+    ticker: currentTicker,
+    strategyName: document.getElementById('strategy-select').selectedOptions[0].text
+  };
 
   const resultsDiv = document.getElementById('backtest-results');
   resultsDiv.innerHTML = `
@@ -193,6 +199,41 @@ async function runSelectedBacktest() {
   `;
 
   renderEquityCurve(result.equityCurve);
+}
+function exportBacktestCSV() {
+  if (!window.lastBacktestResult) {
+    alert('Run a backtest first.');
+    return;
+  }
+  const { trades, metrics, ticker, strategyName } = window.lastBacktestResult;
+
+  let csv = 'MarketLens Backtest Results\n';
+  csv += `Ticker,${ticker}\n`;
+  csv += `Strategy,${strategyName}\n`;
+  csv += `Total Return,${(metrics.totalReturn * 100).toFixed(2)}%\n`;
+  csv += `Buy & Hold Return,${(metrics.buyHoldReturn * 100).toFixed(2)}%\n`;
+  csv += `Sharpe Ratio,${metrics.sharpe.toFixed(2)}\n`;
+  csv += `Max Drawdown,${(metrics.maxDrawdown * 100).toFixed(2)}%\n`;
+  csv += `Win Rate,${(metrics.winRate * 100).toFixed(2)}%\n`;
+  csv += `Number of Trades,${metrics.numTrades}\n`;
+  csv += '\n';
+  csv += 'Date,Type,Price,Shares\n';
+  trades.forEach(t => {
+    csv += `${t.date},${t.type},${t.price.toFixed(2)},${t.shares.toFixed(4)}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `marketlens-${ticker}-${strategyName.replace(/\s+/g, '-')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+const exportBtn = document.getElementById('export-csv-btn');
+if (exportBtn) {
+  exportBtn.addEventListener('click', exportBacktestCSV);
 }
 
 const backtestBtn = document.getElementById('run-backtest-btn');
