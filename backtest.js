@@ -96,3 +96,24 @@ function strategyMACD(bars, fast = 12, slow = 26, signalPeriod = 9) {
 
   return signals;
 }
+
+// Strategy 4: Bollinger Mean Reversion
+// BUY when price crosses below the lower band (oversold), SELL when it crosses back above the middle band
+function strategyBollinger(bars, period = 20, numStdDev = 2) {
+  const bb = calcBollingerBands(bars, period, numStdDev);
+  const closes = bars.map(b => b.close);
+  const signals = new Array(bars.length).fill(null);
+
+  for (let i = 1; i < bars.length; i++) {
+    if (bb.lower[i] === null || bb.middle[i] === null ||
+        bb.lower[i - 1] === null || bb.middle[i - 1] === null) continue;
+
+    if (closes[i - 1] >= bb.lower[i - 1] && closes[i] < bb.lower[i]) {
+      signals[i] = 'BUY';
+    } else if (closes[i - 1] <= bb.middle[i - 1] && closes[i] > bb.middle[i]) {
+      signals[i] = 'SELL';
+    }
+  }
+
+  return signals;
+}
