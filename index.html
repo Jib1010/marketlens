@@ -5,38 +5,115 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarketLens</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    header {
+      background: #1e293b;
+      color: white;
+      padding: 16px;
+      text-align: center;
+    }
+    header h1 { margin: 0; font-size: 1.4em; }
+    nav {
+      display: flex;
+      overflow-x: auto;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    nav button {
+      flex: 1;
+      padding: 12px 8px;
+      border: none;
+      background: none;
+      font-size: 0.9em;
+      cursor: pointer;
+      color: #64748b;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    nav button.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+      font-weight: 600;
+    }
+    .tab-content { display: none; padding: 16px; max-width: 900px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+    select, button.action-btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+    .tf-btn, .ind-btn { margin-right: 4px; margin-bottom: 8px; }
+    .tf-btn.active, .ind-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+    canvas { max-width: 100%; }
+  </style>
 </head>
 <body>
-  <h1>MarketLens — coming soon</h1>
-  <div style="max-width: 900px; margin: 0 auto;">
-  <label for="ticker-select">Ticker:</label>
-  <select id="ticker-select">
-    <option value="AAPL">AAPL</option>
-    <option value="MSFT">MSFT</option>
-    <option value="NVDA">NVDA</option>
-    <option value="SPY">SPY</option>
-    <option value="JPM">JPM</option>
-  </select>
+  <header><h1>MarketLens</h1></header>
 
-  <span style="margin-left: 20px;">
-    <button class="tf-btn" data-tf="1M">1M</button>
-    <button class="tf-btn" data-tf="6M">6M</button>
-    <button class="tf-btn" data-tf="1Y">1Y</button>
-    <button class="tf-btn" data-tf="5Y">5Y</button>
-  </span>
-    <span style="margin-left: 20px;">
-  <button class="ind-btn" data-ind="RSI">RSI</button>
-  <button class="ind-btn" data-ind="MACD">MACD</button>
-  <button class="ind-btn" data-ind="BB">Bollinger</button>
-</span>
+  <nav>
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="chart">Chart</button>
+    <button class="tab-btn" data-tab="indicators">Indicators</button>
+    <button class="tab-btn" data-tab="backtest">Backtest</button>
+    <button class="tab-btn" data-tab="watchlist">Watchlist</button>
+  </nav>
 
-  <canvas id="price-chart" height="120"></canvas>
-  <canvas id="volume-chart" height="60"></canvas>
-    <canvas id="indicator-chart" height="100"></canvas>
-</div>
+  <div id="tab-overview" class="tab-content active">
+    <h2>Overview</h2>
+    <p>Select a ticker and timeframe on the Chart tab to get started.</p>
+  </div>
 
-<script src="indicators.js"></script> <script src="backtest.js"></script>
-<script src="data.js"></script>
-<script src="app.js"></script>
+  <div id="tab-chart" class="tab-content">
+    <label for="ticker-select">Ticker:</label>
+    <select id="ticker-select">
+      <option value="AAPL">AAPL</option>
+      <option value="MSFT">MSFT</option>
+      <option value="NVDA">NVDA</option>
+      <option value="SPY">SPY</option>
+      <option value="JPM">JPM</option>
+    </select>
+    <div>
+      <button class="tf-btn" data-tf="1M">1M</button>
+      <button class="tf-btn" data-tf="6M">6M</button>
+      <button class="tf-btn tf-btn active" data-tf="1Y">1Y</button>
+      <button class="tf-btn" data-tf="5Y">5Y</button>
+    </div>
+    <canvas id="price-chart" height="180"></canvas>
+    <canvas id="volume-chart" height="100"></canvas>
+  </div>
+
+  <div id="tab-indicators" class="tab-content">
+    <div>
+      <button class="ind-btn" data-ind="RSI">RSI</button>
+      <button class="ind-btn" data-ind="MACD">MACD</button>
+      <button class="ind-btn" data-ind="BB">Bollinger</button>
+    </div>
+    <canvas id="indicator-chart" height="150"></canvas>
+  </div>
+
+  <div id="tab-backtest" class="tab-content">
+    <h2>Backtest</h2>
+    <p>Coming soon — strategy selector and results.</p>
+  </div>
+
+  <div id="tab-watchlist" class="tab-content">
+    <h2>Watchlist</h2>
+    <p>Coming soon — save tickers to track.</p>
+  </div>
+
+  <script src="indicators.js"></script>
+  <script src="backtest.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
