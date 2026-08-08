@@ -181,3 +181,54 @@ const backtestBtn = document.getElementById('run-backtest-btn');
 if (backtestBtn) {
   backtestBtn.addEventListener('click', runSelectedBacktest);
 }
+
+
+function getWatchlist() {
+  const stored = localStorage.getItem('marketlens-watchlist');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveWatchlist(list) {
+  localStorage.setItem('marketlens-watchlist', JSON.stringify(list));
+}
+
+function renderWatchlist() {
+  const list = getWatchlist();
+  const ul = document.getElementById('watchlist-items');
+  if (!ul) return;
+
+  if (list.length === 0) {
+    ul.innerHTML = '<li style="color: #64748b;">No tickers added yet.</li>';
+    return;
+  }
+
+  ul.innerHTML = list.map(ticker => `
+    <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+      <span>${ticker}</span>
+      <button class="action-btn watchlist-remove-btn" data-ticker="${ticker}">Remove</button>
+    </li>
+  `).join('');
+
+  document.querySelectorAll('.watchlist-remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const list = getWatchlist().filter(t => t !== btn.dataset.ticker);
+      saveWatchlist(list);
+      renderWatchlist();
+    });
+  });
+}
+
+const watchlistAddBtn = document.getElementById('watchlist-add-btn');
+if (watchlistAddBtn) {
+  watchlistAddBtn.addEventListener('click', () => {
+    const ticker = document.getElementById('watchlist-add-select').value;
+    const list = getWatchlist();
+    if (!list.includes(ticker)) {
+      list.push(ticker);
+      saveWatchlist(list);
+      renderWatchlist();
+    }
+  });
+}
+
+renderWatchlist();
