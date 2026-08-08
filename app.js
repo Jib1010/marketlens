@@ -15,7 +15,26 @@ aasync function renderCharts(ticker, timeframe) {
     priceCanvasEl.parentElement.style.opacity = '0.4';
   }
 
-  const data = await MLData.getData(ticker);
+async function renderCharts(ticker, timeframe) {
+  const priceCanvasEl = document.getElementById('price-chart');
+  if (priceCanvasEl && priceCanvasEl.parentElement) {
+    priceCanvasEl.parentElement.style.opacity = '0.4';
+  }
+
+  let data;
+  try {
+    data = await MLData.getData(ticker);
+  } catch (err) {
+    if (priceCanvasEl && priceCanvasEl.parentElement) {
+      priceCanvasEl.parentElement.style.opacity = '1';
+      priceCanvasEl.parentElement.innerHTML = `<p style="color: #dc2626;">Couldn't load data for ${ticker}: ${err.message}</p>`;
+    }
+    return;
+  }
+
+  if (priceCanvasEl && priceCanvasEl.parentElement) {
+    priceCanvasEl.parentElement.style.opacity = '1';
+  }
 
   if (priceCanvasEl && priceCanvasEl.parentElement) {
     priceCanvasEl.parentElement.style.opacity = '1';
