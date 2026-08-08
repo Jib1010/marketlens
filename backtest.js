@@ -117,3 +117,56 @@ function strategyBollinger(bars, period = 20, numStdDev = 2) {
 
   return signals;
 }
+
+
+// Performance metrics for a completed backtest
+function calcMetrics(bars, backtestResult, startingCash = 10000) {
+  const { trades, equityCurve, finalEquity } = backtestResult;
+
+  // Total return
+  const totalReturn = (finalEquity - startingCash) / startingCash;
+
+  // Buy-and-hold return over the same period
+  const buyHoldReturn = (bars[bars.length - 1].close - bars[0].close) / bars[0].close;
+
+  // Daily returns from the equity curve, for Sharpe
+  const dailyReturns = [];
+  for (let i = 1; i < equityCurve.length; i++) {
+    const prev = equityCurve[i - 1].equity;
+    const curr = equityCurve[i].equity;
+    if (prev > 0) dailyReturns.push((curr - prev) / prev);
+  }
+  const meanDaily = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length;
+  const variance = dailyReturns.reduce((sum, r) => sum + Math.pow(r - meanDaily, 2), 0) / dailyReturns.length;
+  const stdDev = Math.sqrt(variance);
+  const sharpe = stdDev === 0 ? 0 : (meanDaily / stdDev) * Math.sqrt(252);
+
+  // Max drawdown, computed on the equity curve
+  let peak = equityCurve[0].equity;
+  let maxDrawdown = 0;
+  for (const point of equityCurve) {
+    if (point.equity > peak) peak = point.equity;
+    const drawdown = (peak - point.equity) / peak;
+    if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+  }
+
+  // Win rate: pair up BUY -> SELL trades, check if profitable
+  let wins = 0, completedTrades = 0;
+  for (let i = 0; i < trades.length - 1; i++) {
+    if (trades[i].type === 'BUY' && trades[i + 1].type === 'SELL') {
+      completedTrades++;
+      if (trades[i + 1].price > trades[i].price) wins++;
+    }
+  }
+  const winRate = completedTrades === 0 ? 0 : wins / completedTrades;
+
+  return {
+    totalReturn,
+    buyHoldReturn,
+    sharpe,
+    maxDrawdown,
+    winRate,
+    numTrades: trades.length,
+    completedTrades
+  };
+}
