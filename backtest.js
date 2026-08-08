@@ -72,6 +72,24 @@ function strategyMACrossover(bars, fastPeriod = 50, slowPeriod = 200) {
   }
 
   return signals;
+}// Strategy 2: RSI Oversold/Overbought (default 30/70)
+// BUY when RSI crosses above the oversold threshold (was below, now above)
+// SELL when RSI crosses below the overbought threshold (was above, now below)
+function strategyRSI(bars, period = 14, oversold = 30, overbought = 70) {
+  const rsi = calcRSI(bars, period);
+  const signals = new Array(bars.length).fill(null);
+
+  for (let i = 1; i < bars.length; i++) {
+    if (rsi[i] === null || rsi[i - 1] === null) continue;
+
+    if (rsi[i - 1] <= oversold && rsi[i] > oversold) {
+      signals[i] = 'BUY';
+    } else if (rsi[i - 1] >= overbought && rsi[i] < overbought) {
+      signals[i] = 'SELL';
+    }
+  }
+
+  return signals;
 }
 
 // Strategy 3: MACD Signal Line Cross
