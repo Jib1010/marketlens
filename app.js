@@ -123,3 +123,61 @@ document.querySelectorAll('.ind-btn').forEach(btn => {
     renderCharts(currentTicker, currentTimeframe);
   });
 });
+
+function renderEquityCurve(equityCurve) {
+  const equityCanvas = document.getElementById('equity-chart');
+  if (!equityCanvas) return;
+
+  if (window.equityChart) window.equityChart.destroy();
+
+  // Sample down if there are a lot of points, for performance
+  const step = Math.max(1, Math.floor(equityCurve.length / 500));
+  const sampled = equityCurve.filter((_, i) => i % step === 0);
+
+  window.equityChart = new Chart(equityCanvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: sampled.map(p => p.date),
+      datasets: [{
+        label: 'Equity ($)',
+        data: sampled.map(p => p.equity),
+        borderColor: '#16a34a',
+        borderWidth: 1.5,
+        pointRadius: 0
+      }]
+    },
+    options: { responsive: true, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
+  });
+}
+
+async function runSelectedBacktest() {
+  const strategyKey = document.getElementById('strategy-select').value;
+  const data = await MLData.getData(currentTicker);
+  const bars = data.bars;
+
+  let signals;
+  if (strategyKey === 'MA') signals = strategyMACrossover(bars);
+  else if (strategyKey === 'RSI') signals = strategyRSI(bars);
+  else if (strategyKey === 'MACD') signals = strategyMACD(bars);
+  else if (strategyKey === 'BB') signals = strategyBollinger(bars);
+
+  const result = runBacktest(bars, signals, 10000, 0.001);
+  const metrics = calcMetrics(bars, result, 10000);
+
+  const resultsDiv = document.getElementById('backtest-results');
+  resultsDiv.innerHTML = `
+    <p><strong>Total Return:</strong> ${(metrics.totalReturn * 100).toFixed(1)}%</p>
+    <p><strong>Buy & Hold Return:</strong> ${(metrics.buyHoldReturn * 100).toFixed(1)}%</p>
+    <p><strong>Sharpe Ratio:</strong> ${metrics.sharpe.toFixed(2)}</p>
+    <p><strong>Max Drawdown:</strong> ${(metrics.maxDrawdown * 100).toFixed(1)}%</p>
+    <p><strong>Win Rate:</strong> ${(metrics.winRate * 100).toFixed(1)}%</p>
+    <p><strong>Number of Trades:</strong> ${metrics.numTrades}</p>
+  `;
+
+  renderEquityCurve(result.equityCurve);
+}
+
+const backtestBtn = document.getElementById('run-backtest-btn');
+if (backtestBtn) {
+  backtestBtn.addEventListener('click', runSelectedBacktest);
+}
