@@ -103,7 +103,17 @@
 
   <div id="tab-backtest" class="tab-content">
     <h2>Backtest</h2>
-    <p>Coming soon — strategy selector and results.</p>
+    <label for="strategy-select">Strategy:</label>
+    <select id="strategy-select">
+      <option value="MA">Moving Average Crossover</option>
+      <option value="RSI">RSI Oversold/Overbought</option>
+      <option value="MACD">MACD Signal Cross</option>
+      <option value="BB">Bollinger Mean Reversion</option>
+    </select>
+    <button class="action-btn" id="run-backtest-btn">Run Backtest</button>
+
+    <div id="backtest-results" style="margin-top: 16px;"></div>
+    <canvas id="equity-chart" height="150"></canvas>
   </div>
 
   <div id="tab-watchlist" class="tab-content">
