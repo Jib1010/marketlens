@@ -4,7 +4,23 @@ A browser-only stock analysis and backtesting tool — built from scratch with p
 
 **Live site:** https://jib1010.github.io/marketlens/
 
-## What it does
+## What it does 
+## Screenshots
+
+**Overview**
+![Overview](Screen%20Shot%202026-08-08%20at%201.39.12%20PM.png)
+
+**Chart**
+![Chart](Screen%20Shot%202026-08-08%20at%201.33.40%20PM.png)
+
+**Indicators**
+![Indicators](Screen%20Shot%202026-08-08%20at%201.33.51%20PM.png)
+
+**Backtest**
+![Backtest](Screen%20Shot%202026-08-08%20at%201.34.02%20PM.png)
+
+**Watchlist**
+![Watchlist](Screen%20Shot%202026-08-08%20at%201.34.11%20PM.png)
 
 MarketLens lets you explore historical price data for 5 stocks (AAPL, MSFT, NVDA, SPY, JPM), overlay technical indicators, and backtest four different trading strategies against 20+ years of daily data.
 
