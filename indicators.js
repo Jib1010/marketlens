@@ -67,3 +67,26 @@ function calcMACD(bars, fast = 12, slow = 26, signalPeriod = 9) {
 
   return { macdLine, signalLine, histogram };
 }
+
+
+// Bollinger Bands (20-period SMA, 2 standard deviations)
+function calcBollingerBands(bars, period = 20, numStdDev = 2) {
+  const closes = bars.map(b => b.close);
+  const middle = new Array(closes.length).fill(null);
+  const upper = new Array(closes.length).fill(null);
+  const lower = new Array(closes.length).fill(null);
+
+  for (let i = period - 1; i < closes.length; i++) {
+    const slice = closes.slice(i - period + 1, i + 1);
+    const mean = slice.reduce((a, b) => a + b, 0) / period;
+
+    const variance = slice.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / period;
+    const stdDev = Math.sqrt(variance);
+
+    middle[i] = mean;
+    upper[i] = mean + numStdDev * stdDev;
+    lower[i] = mean - numStdDev * stdDev;
+  }
+
+  return { middle, upper, lower };
+}
