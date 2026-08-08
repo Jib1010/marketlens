@@ -1,7 +1,7 @@
 let priceChart, volumeChart, indicatorChart;
 let currentTicker = 'AAPL';
 let currentTimeframe = '1Y';
-let activeIndicator = null; // 'RSI', 'MACD', 'BB', or null
+let activeIndicator = null;
 
 function filterByTimeframe(bars, tf) {
   const days = { "1M": 21, "6M": 126, "1Y": 252, "5Y": 1260 };
@@ -10,7 +10,7 @@ function filterByTimeframe(bars, tf) {
 }
 
 async function renderCharts(ticker, timeframe) {
-const data = await MLData.getData(ticker);
+  const data = await MLData.getData(ticker);
   const allBars = data.bars;
   const bars = filterByTimeframe(allBars, timeframe);
   const startIdx = allBars.length - bars.length;
@@ -32,70 +32,73 @@ const data = await MLData.getData(ticker);
     tension: 0.1
   }];
 
-  // Bollinger Bands overlay on price chart
   if (activeIndicator === 'BB') {
     const bb = calcBollingerBands(allBars, 20, 2);
-    const upperSlice = bb.upper.slice(startIdx);
-    const lowerSlice = bb.lower.slice(startIdx);
-    const middleSlice = bb.middle.slice(startIdx);
-
     priceDatasets.push(
-      { label: 'Upper Band', data: upperSlice, borderColor: '#94a3b8', borderWidth: 1, pointRadius: 0, borderDash: [4,4] },
-      { label: 'Middle (SMA20)', data: middleSlice, borderColor: '#f59e0b', borderWidth: 1, pointRadius: 0 },
-      { label: 'Lower Band', data: lowerSlice, borderColor: '#94a3b8', borderWidth: 1, pointRadius: 0, borderDash: [4,4] }
+      { label: 'Upper Band', data: bb.upper.slice(startIdx), borderColor: '#94a3b8', borderWidth: 1, pointRadius: 0, borderDash: [4,4] },
+      { label: 'Middle (SMA20)', data: bb.middle.slice(startIdx), borderColor: '#f59e0b', borderWidth: 1, pointRadius: 0 },
+      { label: 'Lower Band', data: bb.lower.slice(startIdx), borderColor: '#94a3b8', borderWidth: 1, pointRadius: 0, borderDash: [4,4] }
     );
   }
 
-  const priceCtx = document.getElementById('price-chart').getContext('2d');
-  priceChart = new Chart(priceCtx, {
-    type: 'line',
-    data: { labels: labels, datasets: priceDatasets },
-    options: { responsive: true, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
-  });
-
-  const volCtx = document.getElementById('volume-chart').getContext('2d');
-  volumeChart = new Chart(volCtx, {
-    type: 'bar',
-    data: { labels: labels, datasets: [{ label: 'Volume', data: volumes, backgroundColor: '#94a3b8' }] },
-    options: { responsive: true, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
-  });
-
-  // RSI or MACD in the separate indicator chart
-  const indCtx = document.getElementById('indicator-chart').getContext('2d');
-  if (activeIndicator === 'RSI') {
-    const rsiFull = calcRSI(allBars, 14);
-    const rsiSlice = rsiFull.slice(startIdx);
-    indicatorChart = new Chart(indCtx, {
+  const priceCanvas = document.getElementById('price-chart');
+  if (priceCanvas) {
+    priceChart = new Chart(priceCanvas.getContext('2d'), {
       type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{ label: 'RSI(14)', data: rsiSlice, borderColor: '#7c3aed', borderWidth: 1.5, pointRadius: 0 }]
-      },
-      options: {
-        responsive: true,
-        scales: { y: { min: 0, max: 100 }, x: { ticks: { maxTicksLimit: 8 } } }
-      }
-    });
-  } else if (activeIndicator === 'MACD') {
-    const macd = calcMACD(allBars, 12, 26, 9);
-    const macdSlice = macd.macdLine.slice(startIdx);
-    const signalSlice = macd.signalLine.slice(startIdx);
-    const histSlice = macd.histogram.slice(startIdx);
-    indicatorChart = new Chart(indCtx, {
-      data: {
-        labels: labels,
-        datasets: [
-          { type: 'line', label: 'MACD', data: macdSlice, borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0 },
-          { type: 'line', label: 'Signal', data: signalSlice, borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0 },
-          { type: 'bar', label: 'Histogram', data: histSlice, backgroundColor: '#94a3b8' }
-        ]
-      },
+      data: { labels: labels, datasets: priceDatasets },
       options: { responsive: true, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
     });
-  } else {
-    indicatorChart = null;
+  }
+
+  const volCanvas = document.getElementById('volume-chart');
+  if (volCanvas) {
+    volumeChart = new Chart(volCanvas.getContext('2d'), {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ label: 'Volume', data: volumes, backgroundColor: '#94a3b8' }] },
+      options: { responsive: true, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
+    });
+  }
+
+  const indCanvas = document.getElementById('indicator-chart');
+  if (indCanvas) {
+    if (activeIndicator === 'RSI') {
+      const rsiFull = calcRSI(allBars, 14);
+      indicatorChart = new Chart(indCanvas.getContext('2d'), {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'RSI(14)', data: rsiFull.slice(startIdx), borderColor: '#7c3aed', borderWidth: 1.5, pointRadius: 0 }] },
+        options: { responsive: true, scales: { y: { min: 0, max: 100 }, x: { ticks: { maxTicksLimit: 8 } } } }
+      });
+    } else if (activeIndicator === 'MACD') {
+      const macd = calcMACD(allBars, 12, 26, 9);
+      indicatorChart = new Chart(indCanvas.getContext('2d'), {
+        data: {
+          labels: labels,
+          datasets: [
+            { type: 'line', label: 'MACD', data: macd.macdLine.slice(startIdx), borderColor: '#2563eb', borderWidth: 1.5, pointRadius: 0 },
+            { type: 'line', label: 'Signal', data: macd.signalLine.slice(startIdx), borderColor: '#f59e0b', borderWidth: 1.5, pointRadius: 0 },
+            { type: 'bar', label: 'Histogram', data: macd.histogram.slice(startIdx), backgroundColor: '#94a3b8' }
+          ]
+        },
+        options: { responsive: true, scales: { x: { ticks: { maxTicksLimit: 8 } } } }
+      });
+    }
   }
 }
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tabName).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+
+  if (tabName === 'chart' || tabName === 'indicators') {
+    renderCharts(currentTicker, currentTimeframe);
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
 
 document.getElementById('ticker-select').addEventListener('change', (e) => {
   currentTicker = e.target.value;
@@ -104,6 +107,8 @@ document.getElementById('ticker-select').addEventListener('change', (e) => {
 
 document.querySelectorAll('.tf-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     currentTimeframe = btn.dataset.tf;
     renderCharts(currentTicker, currentTimeframe);
   });
@@ -111,9 +116,10 @@ document.querySelectorAll('.tf-btn').forEach(btn => {
 
 document.querySelectorAll('.ind-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    activeIndicator = (activeIndicator === btn.dataset.ind) ? null : btn.dataset.ind;
+    const wasActive = btn.classList.contains('active');
+    document.querySelectorAll('.ind-btn').forEach(b => b.classList.remove('active'));
+    activeIndicator = wasActive ? null : btn.dataset.ind;
+    if (!wasActive) btn.classList.add('active');
     renderCharts(currentTicker, currentTimeframe);
   });
 });
-
-renderCharts(currentTicker, currentTimeframe);
