@@ -177,4 +177,75 @@ async function runSelectedBacktest() {
   if (strategyKey === 'MA') signals = strategyMACrossover(bars);
   else if (strategyKey === 'RSI') signals = strategyRSI(bars);
   else if (strategyKey === 'MACD') signals = strategyMACD(bars);
-  else if
+  else if (strategyKey === 'BB') signals = strategyBollinger(bars);
+
+  const result = runBacktest(bars, signals, 10000, 0.001);
+  const metrics = calcMetrics(bars, result, 10000);
+
+  const resultsDiv = document.getElementById('backtest-results');
+  resultsDiv.innerHTML = `
+    <p><strong>Total Return:</strong> ${(metrics.totalReturn * 100).toFixed(1)}%</p>
+    <p><strong>Buy & Hold Return:</strong> ${(metrics.buyHoldReturn * 100).toFixed(1)}%</p>
+    <p><strong>Sharpe Ratio:</strong> ${metrics.sharpe.toFixed(2)}</p>
+    <p><strong>Max Drawdown:</strong> ${(metrics.maxDrawdown * 100).toFixed(1)}%</p>
+    <p><strong>Win Rate:</strong> ${(metrics.winRate * 100).toFixed(1)}%</p>
+    <p><strong>Number of Trades:</strong> ${metrics.numTrades}</p>
+  `;
+
+  renderEquityCurve(result.equityCurve);
+}
+
+const backtestBtn = document.getElementById('run-backtest-btn');
+if (backtestBtn) {
+  backtestBtn.addEventListener('click', runSelectedBacktest);
+}
+
+function getWatchlist() {
+  const stored = localStorage.getItem('marketlens-watchlist');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveWatchlist(list) {
+  localStorage.setItem('marketlens-watchlist', JSON.stringify(list));
+}
+
+function renderWatchlist() {
+  const list = getWatchlist();
+  const ul = document.getElementById('watchlist-items');
+  if (!ul) return;
+
+  if (list.length === 0) {
+    ul.innerHTML = '<li class="empty-state">No tickers added yet.</li>';
+    return;
+  }
+
+  ul.innerHTML = list.map(ticker => `
+    <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+      <span>${ticker}</span>
+      <button class="action-btn watchlist-remove-btn" data-ticker="${ticker}">Remove</button>
+    </li>
+  `).join('');
+
+  document.querySelectorAll('.watchlist-remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const list = getWatchlist().filter(t => t !== btn.dataset.ticker);
+      saveWatchlist(list);
+      renderWatchlist();
+    });
+  });
+}
+
+const watchlistAddBtn = document.getElementById('watchlist-add-btn');
+if (watchlistAddBtn) {
+  watchlistAddBtn.addEventListener('click', () => {
+    const ticker = document.getElementById('watchlist-add-select').value;
+    const list = getWatchlist();
+    if (!list.includes(ticker)) {
+      list.push(ticker);
+      saveWatchlist(list);
+      renderWatchlist();
+    }
+  });
+}
+
+renderWatchlist();
