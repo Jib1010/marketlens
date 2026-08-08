@@ -124,6 +124,17 @@
     </select>
     <button class="action-btn" id="run-backtest-btn">Run Backtest</button>
     <button class="action-btn" id="export-csv-btn">Export CSV</button>
+    <br><br>
+    <label for="compare-select">Compare against:</label>
+    <select id="compare-select">
+      <option value="MA">Moving Average Crossover</option>
+      <option value="RSI">RSI Oversold/Overbought</option>
+      <option value="MACD">MACD Signal Cross</option>
+      <option value="BB">Bollinger Mean Reversion</option>
+    </select>
+    <button class="action-btn" id="compare-btn">Compare</button>
+
+    <div id="compare-results" style="margin-top: 16px;"></div>
 
     <div id="backtest-results" style="margin-top: 16px;"></div>
     <canvas id="equity-chart" height="150"></canvas>
