@@ -118,7 +118,15 @@
 
   <div id="tab-watchlist" class="tab-content">
     <h2>Watchlist</h2>
-    <p>Coming soon — save tickers to track.</p>
+    <select id="watchlist-add-select">
+      <option value="AAPL">AAPL</option>
+      <option value="MSFT">MSFT</option>
+      <option value="NVDA">NVDA</option>
+      <option value="SPY">SPY</option>
+      <option value="JPM">JPM</option>
+    </select>
+    <button class="action-btn" id="watchlist-add-btn">Add to Watchlist</button>
+    <ul id="watchlist-items" style="list-style: none; padding: 0; margin-top: 16px;"></ul>
   </div>
 
   <script src="indicators.js"></script>
