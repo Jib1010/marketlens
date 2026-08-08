@@ -55,6 +55,12 @@
     .tf-btn, .ind-btn { margin-right: 4px; margin-bottom: 8px; }
     .tf-btn.active, .ind-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
     canvas { max-width: 100%; }
+    #backtest-results p { margin: 6px 0; }
+    #tab-backtest, #tab-watchlist { padding-bottom: 40px; }
+    #run-backtest-btn { margin-left: 8px; }
+    #watchlist-items li span { font-weight: 600; }
+    .empty-state { color: #64748b; font-style: italic; padding: 20px 0; }
+    h2 { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -68,11 +74,17 @@
     <button class="tab-btn" data-tab="watchlist">Watchlist</button>
   </nav>
 
-  <div id="tab-overview" class="tab-content active">
+<div id="tab-overview" class="tab-content active">
     <h2>Overview</h2>
-    <p>Select a ticker and timeframe on the Chart tab to get started.</p>
+    <p>MarketLens is a stock analysis and backtesting tool covering 5 tickers (AAPL, MSFT, NVDA, SPY, JPM) with 20+ years of daily price history.</p>
+    <ul>
+      <li><strong>Chart</strong> — price and volume history with adjustable timeframes</li>
+      <li><strong>Indicators</strong> — RSI, MACD, and Bollinger Bands overlays</li>
+      <li><strong>Backtest</strong> — simulate 4 trading strategies against full history</li>
+      <li><strong>Watchlist</strong> — save tickers you're tracking</li>
+    </ul>
+    <p>Start on the <strong>Chart</strong> tab to explore a ticker.</p>
   </div>
-
   <div id="tab-chart" class="tab-content">
     <label for="ticker-select">Ticker:</label>
     <select id="ticker-select">
