@@ -4,8 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MarketLens</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
 <body>
   <h1>MarketLens — coming soon</h1>
+  <div style="max-width: 900px; margin: 0 auto;">
+  <label for="ticker-select">Ticker:</label>
+  <select id="ticker-select">
+    <option value="AAPL">AAPL</option>
+    <option value="MSFT">MSFT</option>
+    <option value="NVDA">NVDA</option>
+    <option value="SPY">SPY</option>
+    <option value="JPM">JPM</option>
+  </select>
+
+  <span style="margin-left: 20px;">
+    <button class="tf-btn" data-tf="1M">1M</button>
+    <button class="tf-btn" data-tf="6M">6M</button>
+    <button class="tf-btn" data-tf="1Y">1Y</button>
+    <button class="tf-btn" data-tf="5Y">5Y</button>
+  </span>
+
+  <canvas id="price-chart" height="120"></canvas>
+  <canvas id="volume-chart" height="60"></canvas>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
